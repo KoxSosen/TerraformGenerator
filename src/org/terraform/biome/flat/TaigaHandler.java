@@ -10,7 +10,10 @@ import org.terraform.tree.FractalTreeBuilder;
 import org.terraform.tree.FractalTypes;
 import org.terraform.utils.BlockUtils;
 import org.terraform.utils.GenUtils;
+import org.terraform.utils.PoissonDiskSampling;
+import org.terraform.utils.Vector2f;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 public class TaigaHandler extends BiomeHandler {
@@ -56,15 +59,22 @@ public class TaigaHandler extends BiomeHandler {
         }
 
         // Generate small trees
-        for (int i = 0; i < GenUtils.randInt(1, 5); i++) {
-            int treeX = GenUtils.randInt(random, 0, 15) + data.getChunkX() * 16;
-            int treeZ = GenUtils.randInt(random, 0, 15) + data.getChunkZ() * 16;
-            if (data.getBiome(treeX, treeZ) == getBiome()) {
-                int treeY = GenUtils.getHighestGround(data, treeX, treeZ);
+        ArrayList<Vector2f> treePositions = new PoissonDiskSampling(3, 6f).getPositionsInChunk(data.getChunkX(), data.getChunkZ());
 
-                new FractalTreeBuilder(FractalTypes.Tree.TAIGA_SMALL).build(tw, data, treeX, treeY, treeZ);
-            }
+        for (Vector2f point : treePositions) {
+            if (data.getBiome((int) point.x, (int) point.y) == getBiome())
+                new FractalTreeBuilder(FractalTypes.Tree.TAIGA_SMALL).build(tw, data, (int) point.x, GenUtils.getHighestGround(data, (int) point.x, (int) point.y), (int) point.y);
         }
+
+//        for (int i = 0; i < GenUtils.randInt(1, 5); i++) {
+//            int treeX = GenUtils.randInt(random, 0, 15) + data.getChunkX() * 16;
+//            int treeZ = GenUtils.randInt(random, 0, 15) + data.getChunkZ() * 16;
+//            if (data.getBiome(treeX, treeZ) == getBiome()) {
+//                int treeY = GenUtils.getHighestGround(data, treeX, treeZ);
+//
+//                new FractalTreeBuilder(FractalTypes.Tree.TAIGA_SMALL).build(tw, data, treeX, treeY, treeZ);
+//            }
+//        }
 
         // Generate grass
         for (int x = data.getChunkX() * 16; x < data.getChunkX() * 16 + 16; x++) {
